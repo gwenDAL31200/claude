@@ -45,8 +45,10 @@ $donnees.general = Invoke-Section 'Etat general' {
 
     $gpuPct = $null
     try {
-        $ech = (Get-Counter '\GPU Engine(*engtype_3D)\Utilization Percentage' -ErrorAction Stop).CounterSamples
-        if ($ech) { $gpuPct = [math]::Round(($ech | Measure-Object -Property CookedValue -Sum).Sum, 1) }
+        # Classe CIM : son nom ne depend pas de la langue de Windows (contrairement a Get-Counter)
+        $ech = Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine -ErrorAction Stop |
+               Where-Object { $_.Name -like '*engtype_3D' }
+        if ($ech) { $gpuPct = [math]::Round([math]::Min(100, ($ech | Measure-Object -Property UtilizationPercentage -Sum).Sum), 1) }
     } catch {}
 
     $dureeBootSec = $null
@@ -225,7 +227,7 @@ $donnees.nettoyage = Invoke-Section 'Espace recuperable' {
     $postes
 }
 
-# ------------------------------------------------------------------ 8. Reseau
+# ------------------------------------------------------------------ 7. Reseau
 $donnees.reseau = Invoke-Section 'Reseau' {
     $cible = '1.1.1.1'
     $envoyes = 10; $recus = 0; $latences = @()
@@ -253,13 +255,13 @@ $donnees.reseau = Invoke-Section 'Reseau' {
     }
 }
 
-# ------------------------------------------------------------- 9. Applications
+# ------------------------------------------------------------- 8. Applications
 $donnees.applications = Invoke-Section 'Mises a jour applications (winget)' {
     $brut = winget upgrade --accept-source-agreements 2>$null | Out-String
     @{ wingetUpgradeBrut = $brut.Trim() }
 }
 
-# ------------------------------------------------------ 10. Journal evenements
+# ------------------------------------------------------- 9. Journal evenements
 $donnees.evenements = Invoke-Section 'Journaux Windows (24h)' {
     $depuis = (Get-Date).AddDays(-1)
     function Compter($filtre) {

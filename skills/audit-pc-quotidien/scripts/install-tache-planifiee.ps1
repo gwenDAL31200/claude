@@ -26,7 +26,7 @@ catch {
 $nomTache = 'AuditPC-Quotidien'
 $action   = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument ('/c "' + $scriptCmd + '"')
 $trigger  = New-ScheduledTaskTrigger -Daily -At '08:00'
-$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
+$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Highest
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -DontStopIfGoingOnBatteries `
             -AllowStartIfOnBatteries -ExecutionTimeLimit (New-TimeSpan -Hours 1)
 
